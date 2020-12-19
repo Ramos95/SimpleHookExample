@@ -1,7 +1,7 @@
 # SimpleHookExample
 Created with CodeSandbox
 
-aplicacion simple en react para demostrar el uso de hooks comunes con react
+aplicacion simple en react para demostrar el uso de hooks comunes
 
 el uso de useRef para evitar useEffect con dependencias se llamado en el primer renderizado
 al igual que usarlo como custom hook fueron encontrados como respues en: 
