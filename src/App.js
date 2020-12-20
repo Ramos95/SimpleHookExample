@@ -1,88 +1,81 @@
-import React, { useEffect, useState, useRef } from "react";
-/*importando el cusmtomHook*/
-import useOnUpdate from "./useOnUpdate";
+import React, { useEffect, useState } from "react";
 import "./styles.css";
 
 export default function App() {
-  /*dummyData funciona como valor de estado y setDummyData
-  functiona como su function propia para poderlo actualizar*/
-  /*en este caso se inicializa con un string que contiene la paralabra empty*/
-  const [dummyData, setDummyData] = useState("empty");
-
-  /*useRef es un hook que nos permite persistir valores en todo el ciclo de vida
- del componente*/
-  let isMounted = useRef(false);
-
-  /*useEffect funciona tanto como componentDidMount
-  componentWillUmount y detecta los cambios en los estados de su 
-  lista de dependencia*/
-
-  /* La funcion dentro de useEffect se jecutara cuando
-  el comonente se monte, y la funcion en return cuando
-  este se vaya desmontar*/
-
-  /* el array [] indica las dependecias que necesita,
-  de estar vacio entonces indica que solo debe ejecutarse cuando
-  el componente sea montado y cuando se desmonte*/
-
-  /*si el array incluye variables, entonces tambien se ejecutara 
-  cuando un elemento del array de dependcias cambie*/
-
-  /*de no presentar el array, este siempre se ejecutara en cualquier
-  cambio del componente*/
+  const [fetchedData, setFetchedData] = useState({});
 
   useEffect(() => {
-    console.log("mounting lol");
-    return () => {
-      console.log("umount lol");
-    };
+    fetchData(1);
   }, []);
 
-  /*en este punto useEffect recibe el estado de dummyData,
-  lo que le indica que ademas de actuar cuando el componente sea montado,
-  tambien actuara cuando dummyData Cambie*/
+  function fetchData(character) {
+    fetch(`https://swapi.dev/api/people/${character}/`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((response) => {
+        response.json().then((obj) => {
+          fetch(`https://swapi.dev/api/planets/${character}/`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          })
+            .then((homeWorldResponse) =>
+              homeWorldResponse.json().then((hmObj) => {
+                setFetchedData({ ...obj, homeworld: hmObj.name });
+              })
+            )
+            .catch((error) => console.log(error));
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
 
-  useEffect(() => {
-    console.log(`imrpimriemndo ${dummyData} desde useEffect`);
-  }, [dummyData]);
+  /* async function fetchData(character) {
+    try {
+      const responseCharacter = await fetch(
+        `https://swapi.dev/api/people/${character}/`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+      const characterObject = await responseCharacter.json();
 
-  /*El inconviente que presenta es que este siempre se ejecutara cuando el 
-  componente se monte lo cual puede causar problemas si se requiere llamar una
-  funcion que utiilice el estado y esta, debido a que esta recies definido no posea
-  los valores apropiados para ser usado*/
+      const characterHomeWorldResponse = await fetch(
+        `https://swapi.dev/api/planets/${characterObject}/`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+      const characterHomeWorldObject = await characterHomeWorldResponse.json();
 
-  /*para eso se utiliza useRef lo cual permite persistir valores a lo largo de toda la vida
-  del componente, asi que se puede utilizar para identificar si el componente se esta montando
-  por primera vez y evitar llamar a la funcion o si este ya esta montado y asi solo se ejecutara
-  cuando sus dependecias cambien*/
+      const characterInfo = {
+        ...characterObject,
+        homeworld: characterHomeWorldObject.name
+      };
 
-  useEffect(() => {
-    if (!isMounted.current) {
-      isMounted.current = true;
-    } else {
-      console.log(`imrpimriemndo ${dummyData} desde useEffect con useRef`);
+      setFetchedData(characterInfo);
+    } catch (error) {
+      console.log(error);
     }
-  }, [dummyData]);
-
-  /*para evitar estar repitiendo la misma validacion en cada useEffect
-  podemos crear un customHook que se encargue de valdiar*/
-
-  /*al igual que useEffect este recibe una funcion y la dependencia*/
-  useOnUpdate(() => {
-    console.log(`imrpimriemndo ${dummyData} desde customHook useUpdate`);
-  }, dummyData);
-
-  /*arrow function que se encarga cambiar el valor de dummyData cada vez
-  que se hace click al boton*/
-  const addValue = () => setDummyData(Math.random());
+  }*/
 
   return (
     <div className="App">
       <h1>Explicacion Simple Con Hooks</h1>
       <h2>Para Manquear Con React</h2>
-      <p>{dummyData}</p>
-      <button title="cambiarValor" onClick={addValue}>
-        Cambiar Valor
+      <p>{fetchedData.name}</p>
+      <p>{fetchedData.height}</p>
+      <p>{fetchedData.mass}</p>
+      <p>{fetchedData.homeworld}</p>
+      <button
+        title="cambiarValor"
+        onClick={() => fetchData(Math.floor(Math.random() * (100 - 1 + 1))) + 1}
+      >
+        Traer Personaje random
       </button>
     </div>
   );
